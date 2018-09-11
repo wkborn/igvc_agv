@@ -1,5 +1,3 @@
-//hi sam
-
 #include <Servo.h>
 
 Servo right_servo;  // create servo object to control a servo
