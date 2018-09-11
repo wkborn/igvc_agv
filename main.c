@@ -39,7 +39,8 @@ int main()
 
 
 void setup(){
-  DDRB = 0x0F;
+  DDRB = 0b00011111;
+  DDRD &= ~(1 << PD2);
   ping_1 = 0;
   ping_2 = 0;
   ping_3 = 0;
@@ -61,11 +62,12 @@ void loop(){
 
   sensor_data();
 	PORTB = 0x00;
+  PORTD = 0x00;
 
-	if((state & 0x10)==0x10)
-		state = state | 0x0F;
+  if (PIND & (1<<PD2))
+		state = state | 0x1F;
 	else
-		state=0x00;
+		state=0x01;
 	state = obstacle_front | obstacle_left | obstacle_right | inv_wall_left | inv_wall_right | in_room;
 	PORTB = state;
 
@@ -219,4 +221,5 @@ void sensor_data(){
   //inv_wall_left = 0b00001000;
   //inv_wall_right = 0b00010000;
   //in_room=0b00100000;
+  pings();
 }
