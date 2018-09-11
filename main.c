@@ -1,13 +1,18 @@
 
+//#define F_CPU 1600000
+#define blink_rate 1
+
 #include<stdint.h>
 #include<stdlib.h>
 
 #include <avr/io.h>
 #include <util/delay.h>
+#include <avr/interrupt.h>
 
 void setup();
 void loop();
 void sensor_data();
+uint8_t ping_front();
 
 uint16_t ping_1;
 uint16_t ping_2;
@@ -24,6 +29,48 @@ uint8_t inv_wall_right;
 uint8_t in_room;
 uint8_t state;
 uint8_t prev_direction;
+uint32_t ms;
+
+
+ISR(TIMER1_OVF_vect)
+{
+  TCNT1 = 0x10000 - (F_CPU/1100000/blink_rate);
+  ms++;
+}
+
+unsigned long int millis(void)
+{
+    return ms;
+}
+
+void Timer0_Init(void)
+{
+  /* Set up Timer 1 control and status registers */
+  TCCR1A = (0<<COM1A1) | (0<<COM1A0) | (0<<COM1B1) | (0<<COM1B0);	// OC1A/B disconnected, no PWM
+  TCCR1B = (1<<CS12)   | (0<<CS11)   | (1<<CS10);					// Prescaler is 1024
+
+  /* Preset Timer1 */
+  TCNT1 = 0x10000 - (F_CPU/110000/blink_rate);
+
+  /* Clear any interrupt flags */
+  TIFR1 = (1<<TOV1);
+
+  /* Enable local interrupt */
+  /* Enable Timer1 overflow interrupt */
+  TIMSK1 = (1<<TOIE1);
+
+  TCNT0 = 0xF0;
+
+  /* Enable interrupts */
+  sei();
+}
+
+uint32_t millisToCentimeters(uint32_t millis) {
+  // The speed of sound is 340 m/s or 29 microseconds per centimeter.
+  // The ping travels out and back, so to find the distance of the object we
+  // take half of the distance travelled.
+  return (millis) / 29 / 2;
+}
 
 int main()
 {
@@ -39,8 +86,10 @@ int main()
 
 
 void setup(){
+  Timer0_Init();
+
   DDRB = 0b00011111;
-  DDRD &= ~(1 << PD2);
+  DDRD &= ~(1 << PD0);
   ping_1 = 0;
   ping_2 = 0;
   ping_3 = 0;
@@ -62,12 +111,7 @@ void loop(){
 
   sensor_data();
 	PORTB = 0x00;
-  PORTD = 0x00;
 
-  if (PIND & (1<<PD2))
-		state = state | 0x1F;
-	else
-		state=0x01;
 	state = obstacle_front | obstacle_left | obstacle_right | inv_wall_left | inv_wall_right | in_room;
 	PORTB = state;
 
@@ -210,16 +254,68 @@ void loop(){
   }
 
 
-  _delay_ms(1000);
+  //_delay_ms(1);
 }
 
 
 void sensor_data(){
-  //obstacle_front = 0b00000001;
+  obstacle_front = ping_front();
   //obstacle_left = 0b00000010;
   //obstacle_right = 0b00000100;
   //inv_wall_left = 0b00001000;
   //inv_wall_right = 0b00010000;
   //in_room=0b00100000;
-  pings();
 }
+
+uint8_t ping_front(){
+  //PIN PD1
+  /*
+  PORTB=0x00;
+  _delay_ms(1000);
+  PORTB=0xFF;
+  _delay_ms(1000);
+  PORTB=0x00;
+  */
+  PORTD=0x00;
+
+  DDRD= 0b00000001; //pinMode(pingPin, OUTPUT);
+  PORTD= 0x00; //digitalWrite(pingPin, LOW);
+  _delay_us(2);
+  PORTD= 0b00000001; //digitalWrite(pingPin, HIGH);
+  _delay_us(5);
+  PORTD= 0x00; //digitalWrite(pingPin, LOW);
+
+  // The same pin is used to read the signal from the PING))): a HIGH pulse
+  // whose duration is the time (in microseconds) from the sending of the ping
+  // to the reception of its echo off of an object.
+  DDRD= 0b11111110;//pinMode(pingPin, INPUT);
+  uint16_t init_millis= millis();
+  while((PIND&0b00000001)!=0x01){
+    _delay_us(1);
+
+  }
+
+  uint32_t duration = millis()-init_millis; //pulseIn(pingPin, HIGH);
+  uint32_t dist = millisToCentimeters(duration);
+  if(dist>1000)
+  {
+    return 0b00010000;
+  }
+
+  return 0x00;
+}
+
+
+/*
+if (init_millis>=10000)
+{
+  while (1){
+    PORTB=0x00;
+    _delay_ms(1000);
+    PORTB=0xFF;
+    _delay_ms(1000);
+    PORTB=0x00;
+  }
+}
+
+*/
