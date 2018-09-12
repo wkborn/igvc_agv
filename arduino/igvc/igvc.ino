@@ -1,5 +1,24 @@
+#DEFINE DARK 309
+#DEFINE LIGHT 310
+#DEFINE LSENSORPIN 0
+#DEFINE RSENSORPIN 0 //analog pin used to connect the sharp sensor
+#DEFINE THRESHOLD 250  //value when vehicle should can direction
+
 #include <Servo.h>
 
+//sensors
+//photo
+int light_value;
+int roomlight_value;
+int lightPin = 0;         //Pin assignment
+int roomlightPin = 1;     //Pin assignment
+//ir
+int lval = 0;  //variable to store the values from sensor(initially zero)
+int rval = 0;
+
+
+
+//servos
 Servo right_servo;  // create servo object to control a servo
 Servo left_servo;
 
@@ -9,6 +28,13 @@ void left();
 void right();
 void halt();
 void sensors();
+void set_flags();
+
+//sensors
+
+int light_sensor_handler();
+int ir_left_handler();
+int ir_right_handler();
 
 uint8_t obstacle_front;
 uint8_t obstacle_left;
@@ -19,6 +45,8 @@ uint8_t in_room;
 uint8_t state;
 
 void setup() {
+  Serial.begin(9600);
+
   right_servo.attach(11);  // attaches the servo on pin 10&12 to the servo object
   left_servo.attach(10);
   halt();
@@ -28,6 +56,7 @@ void setup() {
 void loop() {
 
   sensors();
+  set_flags();
 
   state_machine();
 
@@ -35,44 +64,22 @@ void loop() {
   delay(1);
 }
 
-void forward() {
-    right_servo.write(100);
-    delay(400);
-    left_servo.write(97);
+void set_flags(){
+
+  if (light_value =< DARK)
+    inroom = 0b00100000;   //If robot does not detect light (i.e. room is dark) set flag to 1
+  else if (light_value >= LIGHT)
+    inroom = 0b00000000;  //If the robot detects light, set the flag to 0
+  if(lval < THRESHOLD)
+		inv_wall_left = 0b00010000;
+	if(rval < THRESHOLD)
+		inv_wall_right = 0b00001000;
 }
 
-void reverse() {
-    right_servo.write(80);
-    delay(10);
-    left_servo.write(80);
-    delay(10);
-}
-
-void left() {
-    right_servo.write(100);
-    delay(10);
-    left_servo.write(80);
-    delay(10);
-}
-
-void right() {
-    right_servo.write(80);
-    delay(10);
-    left_servo.write(100);
-    delay(10);
-}
-
-void halt() {
-    right_servo.write(0);
-    delay(10);
-    left_servo.write(91);
-    delay(10);
-
-}
 
 
 void sensors(){
-
+  light_sensor();
 }
 
 void state_machine(){
@@ -355,4 +362,58 @@ void state_machine(){
     break;
 
   }
+}
+
+//sensors
+
+int light_sensor_handler(){
+
+  roomlight_value = (analogRead(roomlightPin)); //Write the value of the photoresistor to the room light variable.
+  light_value = (analogRead(lightPin)); //Write the value of the photoresistor to the light variable
+}
+
+int ir_left_handler(){
+	lval = analogRead(lsensorpin); //reads the value of the sharp sensor
+	return lval;
+}
+
+int ir_right_handler(){
+	rval = analogRead(lsensorpin);
+}
+
+//SERVOS
+
+void forward() {
+    right_servo.write(100);
+    delay(400);
+    left_servo.write(97);
+}
+
+void reverse() {
+    right_servo.write(80);
+    delay(10);
+    left_servo.write(80);
+    delay(10);
+}
+
+void left() {
+    right_servo.write(100);
+    delay(10);
+    left_servo.write(80);
+    delay(10);
+}
+
+void right() {
+    right_servo.write(80);
+    delay(10);
+    left_servo.write(100);
+    delay(10);
+}
+
+void halt() {
+    right_servo.write(0);
+    delay(10);
+    left_servo.write(91);
+    delay(10);
+
 }
