@@ -16,8 +16,6 @@ int roomlightPin = 1;     //Pin assignment
 int lval = 0;  //variable to store the values from sensor(initially zero)
 int rval = 0;
 
-
-
 //servos
 Servo right_servo;  // create servo object to control a servo
 Servo left_servo;
