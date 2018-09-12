@@ -105,15 +105,26 @@ void setup(){
   in_room = 0;
   state = 0;
   prev_direction = 0;
+  PORTB=0x00;
+  _delay_ms(1000);
+  PORTB=0xFF;
+  _delay_ms(1000);
+  PORTB=0x00;
+  _delay_ms(10000);
+  PORTB=0x00;
+  _delay_ms(1000);
+  PORTB=0xFF;
+  _delay_ms(1000);
+  PORTB=0x00;
 }
 
 void loop(){
 
   sensor_data();
 	PORTB = 0x00;
-
+  PORTB = state;
 	state = obstacle_front | obstacle_left | obstacle_right | inv_wall_left | inv_wall_right | in_room;
-	PORTB = state;
+
 
   if(state >= 0x20)
     state = 0x20;
@@ -276,6 +287,7 @@ uint8_t ping_front(){
   _delay_ms(1000);
   PORTB=0x00;
   */
+  _delay_ms(100);
   PORTD=0x00;
 
   DDRD= 0b00000001; //pinMode(pingPin, OUTPUT);
@@ -288,21 +300,29 @@ uint8_t ping_front(){
   // The same pin is used to read the signal from the PING))): a HIGH pulse
   // whose duration is the time (in microseconds) from the sending of the ping
   // to the reception of its echo off of an object.
-  DDRD= 0b11111110;//pinMode(pingPin, INPUT);
+  DDRD= 0x00;//pinMode(pingPin, INPUT);
   uint16_t init_millis= millis();
-  while((PIND&0b00000001)!=0x01){
-    _delay_us(1);
 
+  while((PIND&0b00000001)!=0x01){
+    ;
   }
+
+  while((PIND&0b00000001)!=0x00){
+    if ((millis()-init_millis)>200)
+    {
+      break;
+    }
+  }
+
 
   uint32_t duration = millis()-init_millis; //pulseIn(pingPin, HIGH);
   uint32_t dist = millisToCentimeters(duration);
-  if(dist>1000)
+  if(dist<10)
   {
     return 0b00010000;
   }
 
-  return 0x00;
+  return 0b00011111;
 }
 
 
