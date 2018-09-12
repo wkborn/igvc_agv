@@ -14,14 +14,19 @@ int ir_left_handler(){
 
 int ir_right_handler(){
 	rval = analogRead(lsensorpin);
+	return rval;
 }
 
 int set_ir_flags(){
-	if(lval < THRESHOLD){
+	if(lval < THRESHOLD)
 		inv_wall_left = 0b00010000;
-	}
-
-	if(rval < THRESHOLD){
+	
+	if(lval >= THRESHOLD)
+		inv_wall_left = 0b00000000;
+	
+	if(rval < THRESHOLD)
 		inv_wall_right = 0b00001000;
-	}
+
+	if(rval >= THRESHOLD)
+		inv_wall_right = 0b00000000;
 }
