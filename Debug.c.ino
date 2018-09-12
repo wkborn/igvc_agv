@@ -32,9 +32,9 @@ int lightvalue = 0; //creates a variable to hold the current light value of the 
 
 //*****************PING**********************//
 
-const int mpingPin = 7;
-const int lpingPin = 8;
-const int rpingPin = 9;
+const int mpingPin = 0;
+const int lpingPin = 3;
+const int rpingPin = 2;
 
 //*****************PING*********************//
 
@@ -77,6 +77,8 @@ void loop() {
   lduration = pulseIn(lpingPin, HIGH);
   linches = microsecondsToInches(lduration);
   lcm = microsecondsToCentimeters(lduration);
+
+  delay(100);
   
   pinMode(rpingPin, OUTPUT);
   digitalWrite(rpingPin, LOW);
@@ -89,24 +91,25 @@ void loop() {
   rinches = microsecondsToInches(rduration);
   rcm = microsecondsToCentimeters(rduration);  
 
+  delay(100);
+
   Serial.print("Middle distance: ");
   Serial.print(minches);
   Serial.print("in, ");
   Serial.print(mcm);
-  Serial.print("cm");
-  Serial.println();
+  Serial.println("cm");
   Serial.print("Left distance: ");
   Serial.print(linches);
   Serial.print("in, ");
   Serial.print(lcm);
-  Serial.print("cm");
-  Serial.println();
+  Serial.println("cm");
   Serial.print("Right distance: ");
   Serial.print(rinches);
   Serial.print("in, ");
   Serial.print(rcm);
-  Serial.print("cm");
-  Serial.println();
+  Serial.println("cm");
+
+  delay(100);
 
 //********************PING***************************//
 
@@ -115,10 +118,10 @@ void loop() {
   lval = analogRead(lsensorpin);       // reads the value of the sharp sensor
   rval = analogRead(rsensorpin);
 
-  Serial.println("Left IR Value: ");
-  Serial.print(lval);
-  Serial.println("Right IR Value: ");
-  Serial.print(rval);
+  Serial.print("Left IR Value: ");
+  Serial.println(lval);
+  Serial.print("Right IR Value: ");
+  Serial.println(rval);
 
 //*****************IR SENSOR******************//
 
@@ -127,10 +130,10 @@ void loop() {
   roomlightvalue = (analogRead(roomlightPin)); //Write the value of the photoresistor to the room light variable.
   lightvalue = (analogRead(lightPin)); //Write the value of the photoresistor to the light variable 
 
-  Serial.println("Room Light Value: ");
-  Serial.print(analogRead(roomlightPin)); //Write the value of the photoresistor to the serial monitor.
-  Serial.println("Light Value: ");
-  Serial.print(analogRead(lightPin)); //Write the value of the photoresistor to the serial monitor.
+  Serial.print("Room Light Value: ");
+  Serial.println(analogRead(roomlightPin)); //Write the value of the photoresistor to the serial monitor.
+  Serial.print("Light Value: ");
+  Serial.println(analogRead(lightPin)); //Write the value of the photoresistor to the serial monitor.
 
 //*******************PHOTODETECTOR******************//
 
