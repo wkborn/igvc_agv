@@ -273,7 +273,7 @@ int ir_left_handler(){
 }
 
 int ir_right_handler(){
-	rval = analogRead(lsensorpin);
+	rval = analogRead(ir_left_pin);
 }
 
 int ping_left_handler(){
