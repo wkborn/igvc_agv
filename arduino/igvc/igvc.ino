@@ -9,8 +9,10 @@ int roomlightPin = 1;     //Pin assignment
 //ir
 int lval = 0;  //variable to store the values from sensor(initially zero)
 int rval = 0;
-
-
+//servos
+int ping_front=0;
+int ping_left=0;
+int ping_right=0;
 //servos
 Servo right_servo;  // create servo object to control a servo
 Servo left_servo;
@@ -44,6 +46,12 @@ const int lsensorpin =0;
 const int rsensorpin = 0; //analog pin used to connect the sharp sensor
 const int threshold = 250;  //value when vehicle should can direction
 const int pingPin = 9;
+const int ping_right_pin = 2;
+const int ping_left_pin = 1;
+const int ping_front_pin = 0;
+const int ping_front_min=0;
+const int ping_left_min=0;
+const int ping_right_min=0;
 
 void setup() {
   Serial.begin(9600);
@@ -71,24 +79,24 @@ void loop() {
 void set_flags(){
   inv_wall_left = 0x00;
   inv_wall_right = 0x00;
-  inroom = 0x00;
+  in_room = 0x00;
   obstacle_front = 0x00;
   obstacle_left = 0x00;
   obstacle_right = 0x00;
 
-  if (light_value =< dark)
-    inroom = 0b00100000;   //If robot does not detect light (i.e. room is dark) set flag to 1
+  if (light_value <= dark)
+    in_room = 0b00100000;   //If robot does not detect light (i.e. room is dark) set flag to 1
   else if (light_value >= light)
-    inroom = 0b00000000;  //If the robot detects light, set the flag to 0
+    in_room = 0b00000000;  //If the robot detects light, set the flag to 0
   if(lval < threshold)
 		inv_wall_left = 0b00010000;
 	if(rval < threshold)
 		inv_wall_right = 0b00001000;
-  if(ping_front < PINGFRONTVAL)
+  if(ping_front < ping_front_min)
 		obstacle_front = 0b00000001;
-  if(ping_left < PINGLEFTVAL)
+  if(ping_left < ping_left_min)
 		obstacle_front = 0b00000010;
-  if(ping_right < PINGRIGHTVAL)
+  if(ping_right < ping_right_min)
 		obstacle_front = 0b00000100;
 }
 
@@ -163,7 +171,7 @@ void state_machine(){
       delay(10);
     break;
     case 0x0D: // 00001101 inv wall left and obstacle right and obstacle front
-      reverse()
+      reverse();
       delay(10);
     break;
     case 0x0E: // 00001110 inv wall left and obstacle left and right
@@ -195,7 +203,7 @@ void state_machine(){
       delay(10);
     break;
     case 0x15: // 00010101 inv wall right and obstacle front and right
-      left()
+      left();
       delay(10);
     break;
     case 0x16: // 00010110 inv wall right and obstacle left and right
@@ -263,45 +271,54 @@ int ir_right_handler(){
 }
 
 int ping_left_handler(){
-  long duration, cm
-  pinMode(3, OUTPUT);
-  digitalWrite(3, LOW);
+  long duration, cm;
+  pinMode(ping_left_pin, OUTPUT);
+  digitalWrite(ping_left_pin, LOW);
   delayMicroseconds(2);
-  digitalWrite(3, HIGH);
+  digitalWrite(ping_left_pin, HIGH);
   delayMicroseconds(5);
-  digitalWrite(3, LOW);
-  pinMode(3, INPUT);
-  duration = pulseIn(3, HIGH);
+  digitalWrite(ping_left_pin, LOW);
+  pinMode(ping_left_pin, INPUT);
+  duration = pulseIn(ping_left_pin, HIGH);
   cm = duration/29/2;
   return cm;
 }
 
 int ping_right_handler(){
-  long duration, cm
-  pinMode(2, OUTPUT);
-  digitalWrite(2, LOW);
-  delayMicroseconds(2);
-  digitalWrite(2, HIGH);
+  long duration, cm;
+  pinMode(ping_right_pin, OUTPUT);
+  digitalWrite(ping_right_pin, LOW);
+  delayMicroseconds(ping_right_pin);
+  digitalWrite(ping_right_pin, HIGH);
   delayMicroseconds(5);
-  digitalWrite(2, LOW);
-  pinMode(2, INPUT);
-  duration = pulseIn(2, HIGH);
+  digitalWrite(ping_right_pin, LOW);
+  pinMode(ping_right_pin, INPUT);
+  duration = pulseIn(ping_right_pin, HIGH);
   cm = duration/29/2;
   return cm;
 }
 
 int ping_front_handler(){
-  long duration, cm
-  pinMode(0, OUTPUT);
-  digitalWrite(0, LOW);
+  long duration, cm;
+  pinMode(ping_front_pin, OUTPUT);
+  digitalWrite(ping_front_pin, LOW);
   delayMicroseconds(2);
-  digitalWrite(0, HIGH);
+  digitalWrite(ping_front_pin, HIGH);
   delayMicroseconds(5);
-  digitalWrite(0, LOW);
-  pinMode(0, INPUT);
-  duration = pulseIn(0, HIGH);
+  digitalWrite(ping_front_pin, LOW);
+  pinMode(ping_front_pin, INPUT);
+  duration = pulseIn(ping_front_pin, HIGH);
   cm = duration/29/2;
   return cm;
+}
+
+
+//LIGHT sensor
+int light_sensor(){
+
+  roomlight_value = (analogRead(roomlightPin)); //Write the value of the photoresistor to the room light variable.
+  light_value = (analogRead(lightPin)); //Write the value of the photoresistor to the light variable
+
 }
 
 //SERVOS
@@ -339,4 +356,10 @@ void halt() {
     left_servo.write(91);
     delay(10);
 
+}
+
+//In Room Algorithm
+
+void in_room_algorithm(){
+  ;
 }
