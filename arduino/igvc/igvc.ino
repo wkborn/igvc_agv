@@ -1,9 +1,3 @@
-#DEFINE DARK 309
-#DEFINE LIGHT 310
-#DEFINE LSENSORPIN 0
-#DEFINE RSENSORPIN 0 //analog pin used to connect the sharp sensor
-#DEFINE THRESHOLD 250  //value when vehicle should can direction
-
 #include <Servo.h>
 
 //sensors
@@ -15,6 +9,7 @@ int roomlightPin = 1;     //Pin assignment
 //ir
 int lval = 0;  //variable to store the values from sensor(initially zero)
 int rval = 0;
+
 
 //servos
 Servo right_servo;  // create servo object to control a servo
@@ -41,6 +36,14 @@ uint8_t inv_wall_left;
 uint8_t inv_wall_right;
 uint8_t in_room;
 uint8_t state;
+
+
+const int dark = 309;
+const int light = 310;
+const int lsensorpin =0;
+const int rsensorpin = 0; //analog pin used to connect the sharp sensor
+const int threshold = 250;  //value when vehicle should can direction
+const int pingPin = 9;
 
 void setup() {
   Serial.begin(9600);
@@ -73,13 +76,13 @@ void set_flags(){
   obstacle_left = 0x00;
   obstacle_right = 0x00;
 
-  if (light_value =< DARK)
+  if (light_value =< dark)
     inroom = 0b00100000;   //If robot does not detect light (i.e. room is dark) set flag to 1
-  else if (light_value >= LIGHT)
+  else if (light_value >= light)
     inroom = 0b00000000;  //If the robot detects light, set the flag to 0
-  if(lval < THRESHOLD)
+  if(lval < threshold)
 		inv_wall_left = 0b00010000;
-	if(rval < THRESHOLD)
+	if(rval < threshold)
 		inv_wall_right = 0b00001000;
   if(ping_front < PINGFRONTVAL)
 		obstacle_front = 0b00000001;
