@@ -1,4 +1,4 @@
-#include <Servo.h>
+ir_left_pin#include <Servo.h>
 
 //sensors
 //photo
@@ -42,16 +42,15 @@ uint8_t state;
 
 const int dark = 309;
 const int light = 310;
-const int lsensorpin =0;
-const int rsensorpin = 0; //analog pin used to connect the sharp sensor
+const int ir_left_pin = 13;
+const int ir_right_pin = 12; //analog pin used to connect the sharp sensor
 const int threshold = 250;  //value when vehicle should can direction
-const int pingPin = 9;
 const int ping_right_pin = 2;
 const int ping_left_pin = 1;
 const int ping_front_pin = 0;
-const int ping_front_min=0;
-const int ping_left_min=0;
-const int ping_right_min=0;
+const int ping_front_min=10;
+const int ping_left_min=10;
+const int ping_right_min=10;
 
 void setup() {
   Serial.begin(9600);
@@ -103,7 +102,14 @@ void set_flags(){
 
 
 void sensors(){
+
   light_sensor();
+  ir_left_handler();
+  ir_right_handler();
+  ping_front_handler();
+  ping_left_handler();
+  ping_right_handler();
+
 }
 
 void state_machine(){
@@ -262,7 +268,7 @@ int light_sensor_handler(){
 }
 
 int ir_left_handler(){
-	lval = analogRead(lsensorpin); //reads the value of the sharp sensor
+	lval = analogRead(ir_left_pin); //reads the value of the sharp sensor
 	return lval;
 }
 
@@ -314,7 +320,7 @@ int ping_front_handler(){
 
 
 //LIGHT sensor
-int light_sensor(){
+void light_sensor(){
 
   roomlight_value = (analogRead(roomlightPin)); //Write the value of the photoresistor to the room light variable.
   light_value = (analogRead(lightPin)); //Write the value of the photoresistor to the light variable
