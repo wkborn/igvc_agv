@@ -28,8 +28,8 @@ void set_flags();
 //sensors
 
 int light_sensor_handler();
-int ir_left_handler();
-int ir_right_handler();
+void ir_left_handler();
+void ir_right_handler();
 
 uint8_t obstacle_front;
 uint8_t obstacle_left;
@@ -42,15 +42,15 @@ uint8_t state;
 
 const int dark = 309;
 const int light = 310;
-const int ir_left_pin = 13;
-const int ir_right_pin = 12; //analog pin used to connect the sharp sensor
-const int threshold = 250;  //value when vehicle should can direction
+const int ir_left_pin = 3;
+const int ir_right_pin = 4; //analog pin used to connect the sharp sensor
+const int threshold = 300;  //value when vehicle should can direction
 const int ping_right_pin = 2;
-const int ping_left_pin = 1;
-const int ping_front_pin = 0;
-const int ping_front_min=10;
-const int ping_left_min=10;
-const int ping_right_min=10;
+const int ping_left_pin = 3;
+const int ping_front_pin = 4;
+const int ping_front_min=30;
+const int ping_left_min=40;
+const int ping_right_min=40;
 
 void setup() {
   Serial.begin(9600);
@@ -66,12 +66,12 @@ void setup() {
 
 void loop() {
 
-  sensors();
-  set_flags();
+  //sensors();
+  //set_flags();
 
-  state_machine();
+  //state_machine();
 
-
+  forward();
   delay(1);
 }
 
@@ -88,15 +88,30 @@ void set_flags(){
   else if (light_value >= light)
     in_room = 0b00000000;  //If the robot detects light, set the flag to 0
   if(lval < threshold)
-		inv_wall_left = 0b00010000;
+    inv_wall_left = 0b00001000;
 	if(rval < threshold)
-		inv_wall_right = 0b00001000;
+    inv_wall_right = 0b00010000;
   if(ping_front < ping_front_min)
 		obstacle_front = 0b00000001;
   if(ping_left < ping_left_min)
 		obstacle_front = 0b00000010;
   if(ping_right < ping_right_min)
 		obstacle_front = 0b00000100;
+  
+  Serial.print("Ping front (cm): ");
+  Serial.print(ping_front);
+  Serial.println(" cm.");
+  Serial.print("Ping left (cm): ");
+  Serial.print(ping_left);
+  Serial.println(" cm.");
+  Serial.print("Ping right (cm): ");
+  Serial.print(ping_right);
+  Serial.println(" cm.");
+  Serial.print("IR left: ");
+  Serial.println(lval);
+  Serial.print("IR right: ");
+  Serial.println(rval);
+  delay(500);
 }
 
 
@@ -106,15 +121,16 @@ void sensors(){
   light_sensor();
   ir_left_handler();
   ir_right_handler();
-  ping_front_handler();
-  ping_left_handler();
-  ping_right_handler();
+  ping_front=ping_front_handler();
+  ping_left=ping_left_handler();
+  ping_right=ping_right_handler();
 
 }
 
 void state_machine(){
   PORTB=0x00;
   state = obstacle_front | obstacle_left | obstacle_right | inv_wall_left | inv_wall_right | in_room;
+  Serial.println(state);
   PORTB=state;
 
 
@@ -134,127 +150,127 @@ void state_machine(){
     break;
     case 0x02: // 00000010 obstacle_left
       right();
-      delay(10);
+      
     break;
     case 0x03: // 00000011 obstacles front and left
       right();
-      delay(10);
+      
     break;
     case 0x04: // 00000100 obstacle right
       left();
-      delay(10);
+      
     break;
     case 0x05: // 00000101 obstacle right and front
       left();
-      delay(10);
+      
     break;
     case 0x06: // 00000110 obstacle left and right
       forward();
-      delay(10);
+      
     break;
     case 0x07: // 00000111 obstacle front, left, and right_
       reverse();
-      delay(10);
+      
     break;
     case 0x08: // 00001000 inv wall left
       right();
-      delay(10);
+      
     break;
     case 0x09: // 00001001 inv wall left and obstacle front
       right();
-      delay(10);
+      
     break;
     case 0x0A: // 00001010 inv wall left and obstacle left
       right();
-      delay(10);
+      
     break;
     case 0x0B: // 00001011 inv wall left and obstacle left and obstacle front
       reverse();
-      delay(10);
+      
     break;
     case 0x0C: // 00001100 inv wall left and obstacle right
       forward();
-      delay(10);
+      
     break;
     case 0x0D: // 00001101 inv wall left and obstacle right and obstacle front
       reverse();
-      delay(10);
+      
     break;
     case 0x0E: // 00001110 inv wall left and obstacle left and right
       forward();
-      delay(10);
+      
     break;
     case 0x0F: // 00001111 inv wall left and obstacle front left and right
       reverse();
-      delay(10);
+      
     break;
     case 0x10:// 00010000 inv wall right
       left();
-      delay(10);
+      
     break;
     case 0x11: // 00010001 inv wall right and front
       left();
-      delay(10);
+      
     break;
     case 0x12: // 00010010 inv wall right and obstacle left
       forward();
-      delay(10);
+      
     break;
     case 0x13: // 00010011 inv wall right and obstacles left and front
       reverse();
-      delay(10);
+      
     break;
     case 0x14: // 00010100 inv wall right and obstacle right
       left();
-      delay(10);
+      
     break;
     case 0x15: // 00010101 inv wall right and obstacle front and right
       left();
-      delay(10);
+      
     break;
     case 0x16: // 00010110 inv wall right and obstacle left and right
       forward();
-      delay(10);
+      
     break;
     case 0x17: // 00010111 inv wall right and obstacle front left and right
       reverse();
-      delay(10);
+      
     break;
     case 0x18: //00011000 inv wall right and inv_wall_left
       forward();
-      delay(10);
+      
     break;
     case 0x19: // 00011001 inv wall right and left and obstacle front
       reverse();
-      delay(10);
+      
     break;
     case 0x1A: // 00011010 inv wall right and left and obstacle left
       forward();
-      delay(10);
+      
     break;
     case 0x1B: //  00011011 inv wall right and left and obstacle front and left
       reverse();
-      delay(10);
+      
     break;
     case 0x1C: // 00011100 in wall right and left and obstacle right
       forward();
-      delay(10);
+      
     break;
     case 0x1D: // 00011101 inv wall right and left and obstacle front and right
       reverse();
-      delay(10);
+      
     break;
     case 0x1E: // 00011110 inv left and right and obstacle left and right
       forward();
-      delay(10);
+      
     break;
     case 0x1F: // 00011111 inv wall left and right and obstacle front left and right.
       reverse();
-      delay(10);
+      
     break;
     case 0x20:
       in_room_algorithm();
-      delay(10);
+      
     break;
   }
 }
@@ -267,13 +283,12 @@ int light_sensor_handler(){
   light_value = (analogRead(lightPin)); //Write the value of the photoresistor to the light variable
 }
 
-int ir_left_handler(){
+void ir_left_handler(){
 	lval = analogRead(ir_left_pin); //reads the value of the sharp sensor
-	return lval;
 }
 
-int ir_right_handler(){
-	rval = analogRead(ir_left_pin);
+void ir_right_handler(){
+	rval = analogRead(ir_right_pin);
 }
 
 int ping_left_handler(){
@@ -330,37 +345,37 @@ void light_sensor(){
 //SERVOS
 
 void forward() {
-    right_servo.write(100);
+    right_servo.writeMicroseconds(1550);
     delay(400);
-    left_servo.write(97);
+    left_servo.writeMicroseconds(1500);
 }
 
 void reverse() {
     right_servo.write(80);
-    delay(10);
+    //delay(10);
     left_servo.write(80);
-    delay(10);
+    //delay(10);
 }
 
 void left() {
     right_servo.write(100);
-    delay(10);
+    //delay(10);
     left_servo.write(80);
-    delay(10);
+    //delay(10);
 }
 
 void right() {
     right_servo.write(80);
-    delay(10);
-    left_servo.write(100);
+    //delay(10);
+    //left_servo.write(100);
     delay(10);
 }
 
 void halt() {
     right_servo.write(0);
-    delay(10);
+    //delay(10);
     left_servo.write(91);
-    delay(10);
+    //delay(10);
 
 }
 
