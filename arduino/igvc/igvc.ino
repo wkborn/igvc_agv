@@ -1,4 +1,4 @@
-ir_left_pin#include <Servo.h>
+#include <Servo.h>
 
 //sensors
 //photo
